@@ -9,5 +9,5 @@ parser.add_argument('json_file_paths', nargs='+')
 
 arguments = parser.parse_args()
 
-apex_points.localize_apices(arguments.json_file_paths, arguments.debug, arguments.output_dir)
+apex_points.localize_apices_from_json_file_paths(arguments.json_file_paths, arguments.debug, arguments.output_dir)
 

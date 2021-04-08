@@ -220,14 +220,11 @@ def _compute_i3m(localize_apices_shared, debug_image_merger):
 
     debug_image_merger.add_image(image, 'I3M')
 
-def _localize_apices(annotations, debug=False, output_dir='.', image_name=''):
+def localize_apices(image, mt_masks, debug=False, output_dir='.', image_name=''):
     debug_image_merger = _ImageMerger()
 
     # load the masks
-    width, height = annotations['imageWidth'], annotations['imageHeight']
-    mt_shapes = [shape for shape in annotations['shapes'] if shape['label'] == 'MT']
-    mt_masks = [utils._labelme_shape_to_mask(shape, width, height) for shape in mt_shapes]
-    image = utils._labelme_annotations_to_image(annotations)
+    width, height = image.size
 
     # check the mask length
     if len(mt_masks) < 2:
@@ -252,13 +249,25 @@ def _localize_apices(annotations, debug=False, output_dir='.', image_name=''):
     except Exception as exception:
         _logger.error(f'an error occured: {exception}')
         _logger.error(traceback.format_exc())
+        return None
 
     if debug:
         output_image_name = os.path.join(output_dir, f'{image_name}-debug.png')
         image_to_save = debug_image_merger.generate_image()
         image_to_save.save(output_image_name)
     
-def localize_apices(json_file_paths, debug=False, output_dir='.'):
+    return localize_apices_shared
+
+def _localize_apices_from_json_file_path(annotations, debug=False, output_dir='.', image_name=''):
+    # load the masks
+    width, height = annotations['imageWidth'], annotations['imageHeight']
+    mt_shapes = [shape for shape in annotations['shapes'] if shape['label'] == 'MT']
+    mt_masks = [utils._labelme_shape_to_mask(shape, width, height) for shape in mt_shapes]
+    image = utils._labelme_annotations_to_image(annotations)
+
+    localize_apices(image, mt_masks, debug, output_dir, image_name)
+    
+def localize_apices_from_json_file_paths(json_file_paths, debug=False, output_dir='.'):
     _logger.setLevel(logging.DEBUG if debug else logging.WARNING)
     _logger.info('starting apices localization')
 
@@ -284,5 +293,5 @@ def localize_apices(json_file_paths, debug=False, output_dir='.'):
     # perform analysis
     for filename, annotations in all_annotations.items():
         _logger.debug(f'making analysis for image {filename}')
-        _localize_apices(annotations, debug, output_dir, filename)
+        _localize_apices_from_json_file_path(annotations, debug, output_dir, filename)
 
