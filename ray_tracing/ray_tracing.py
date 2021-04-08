@@ -1,5 +1,5 @@
-from image_merger import ImageMerger as _ImageMerger
-import utils
+from .image_merger import ImageMerger as _ImageMerger
+from . import utils
 
 from PIL import Image, ImageDraw
 import numpy as np
@@ -14,7 +14,7 @@ import sys
 import traceback
 
 # logging
-_logger = logging.getLogger('apex_points')
+_logger = logging.getLogger('ray_tracing')
 _log_handler = logging.StreamHandler()
 _log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 _log_handler.setFormatter(_log_formatter)
