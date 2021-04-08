@@ -199,6 +199,8 @@ def _compute_i3m(localize_apices_shared, debug_image_merger):
     image = localize_apices_shared['image'].convert('RGB').rotate(localize_apices_shared['angle_deg'], expand=True)
     mt_merged_gc = localize_apices_shared['mt_merged_gc']
 
+    utils._apply_mask_to_image(image, localize_apices_shared['mt_merged_mask'], color=(0, 255, 0), alpha=0.05)
+
     draw = ImageDraw.Draw(image)
     distances = 0
     for pair in endpoint_pairs:
@@ -217,6 +219,8 @@ def _compute_i3m(localize_apices_shared, debug_image_merger):
 
     i3m = distances / height
     draw.text((30, 30), f'I3M: {i3m:.03f}', fill=(255, 0, 0))
+
+    localize_apices_shared['output_image'] = image
 
     debug_image_merger.add_image(image, 'I3M')
 
