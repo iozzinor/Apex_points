@@ -225,6 +225,9 @@ def _compute_i3m(localize_apices_shared, debug_image_merger):
     debug_image_merger.add_image(image, 'I3M')
 
 def localize_apices(image, mt_masks, debug=False, output_dir='.', image_name=''):
+    _logger.setLevel(logging.DEBUG if debug else logging.WARNING)
+    _logger.info('starting apices localization')
+
     debug_image_merger = _ImageMerger()
 
     # load the masks
