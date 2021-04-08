@@ -257,11 +257,11 @@ def localize_apices(image, mt_masks, debug=False, output_dir='.', image_name='')
         _logger.error(f'an error occured: {exception}')
         _logger.error(traceback.format_exc())
         return None
-
-    if debug:
-        output_image_name = os.path.join(output_dir, f'{image_name}-debug.png')
-        image_to_save = debug_image_merger.generate_image()
-        image_to_save.save(output_image_name)
+    finally:
+        if debug:
+            output_image_name = os.path.join(output_dir, f'{image_name}-debug.png')
+            image_to_save = debug_image_merger.generate_image()
+            image_to_save.save(output_image_name)
     
     return localize_apices_shared
 
