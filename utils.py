@@ -4,6 +4,15 @@ import operator
 import math
 import io
 import base64
+import logging
+import traceback
+
+# logging
+_logger = logging.getLogger('Apex points')
+_log_handler = logging.StreamHandler()
+_log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+_log_handler.setFormatter(_log_formatter)
+_logger.addHandler(_log_handler)
 
 def _labelme_shape_to_mask(shape, width, height):
     """
@@ -37,6 +46,9 @@ def _np_binary_to_pillow_image(np_array):
     Convert a numpy array (considered as a binary) to a pillow image.
     """
     return Image.fromarray(np.uint8(np.where(np_array > 0, 255, 0)))
+
+def _pillow_image_to_np_binary(image):
+    return np.where(np.array(image) > 0, 1, 0)
 
 def _find_greatest_mt_masks(masks):
     """
@@ -260,6 +272,16 @@ def _split_pulp_line(pivot_point, full_pulp_line):
     return first, last, split_point
 
 def _get_tooth_height(mt_merged_mask):
+    """
+    Parameters
+    ----------
+    mt_merged_mask: np.array
+        A mask that contains all mineralized tissues
+
+    Returns
+    -------
+    (tooth height: int, min y: int, max y: int)
+    """
     width, height = mt_merged_mask.shape[1], mt_merged_mask.shape[0]
     min_y = None
     max_y = None
@@ -278,3 +300,105 @@ def _get_tooth_height(mt_merged_mask):
                 break
         y -= 1
     return max_y - min_y, min_y, max_y
+
+def localize_apices(image, mt_masks, engine, debug=False, output_dir='.', image_name=''):
+    _logger.setLevel(logging.DEBUG if debug else logging.WARNING)
+
+    _logger.debug(f'starting analysis for image {image_name}')
+    try:
+        result = engine(image, mt_masks, debug, output_dir, image_name)
+    except Exception as exception:
+        _logger.error(f'exception during treatment of {image_name}: {exception}')
+        _logger.error(traceback.format_exc())
+        return None
+    _logger.debug(f'ending analysis for image {image_name}')
+    return result
+
+def _localize_apices_from_json_file_path(annotations, engine, debug=False, output_dir='.', image_name=''):
+    # load the masks
+    width, height = annotations['imageWidth'], annotations['imageHeight']
+    mt_shapes = [shape for shape in annotations['shapes'] if shape['label'] == 'MT']
+    mt_masks = [_labelme_shape_to_mask(shape, width, height) for shape in mt_shapes]
+    image = _labelme_annotations_to_image(annotations)
+
+    localize_apices(image, mt_masks, engine, debug, output_dir, image_name)
+    
+def _localize_apices_from_json_file_paths(json_file_paths, engine, debug=False, output_dir='.', engine_name='apex points'):
+    import os
+    import json
+
+    _logger.setLevel(logging.DEBUG if debug else logging.WARNING)
+    _logger.name = engine_name
+    _logger.info('starting apices localization')
+
+    # load all annotations
+    all_annotations = {}
+    for json_file_path in json_file_paths:
+        if not os.path.exists(json_file_path):
+            _logger.warn(f'file \'{json_file_path}\' does not exist. Ignoring...')
+            continue
+
+        with open(json_file_path) as json_file:
+            filename = os.path.splitext(os.path.basename(json_file_path))[0]
+            try:
+                all_annotations[filename] = json.load(json_file)
+            except:
+                _logger.error(f'could not load json file \'{json_file_path}\'')
+                continue
+    _logger.info('will perform localization for {} files'.format(len(all_annotations)))
+    if len(all_annotations) < 1:
+        _logger.error('no images to analyze')
+        sys.exit(1)
+
+    # perform analysis
+    for filename, annotations in all_annotations.items():
+        _localize_apices_from_json_file_path(annotations, engine, debug, output_dir, filename)
+
+def _rotate_tooth_image(image, mt_masks):
+    """
+    Rotate the tooth image by using the gravity centers of mineralized tissues.
+
+    Parameters
+    ----------
+    image: PIL.Image
+        The initial tooth image
+    mt_masks: [np.array]
+        List of masks of mineralized tissues
+
+    Returns
+    -------
+    (angle, angle deg, rotated image)
+    angle: float
+        The rotation angle in radiangs
+    angle deg: float
+        The rotation angle in degrees
+    rotated image: PIL.Image
+        The tooth image, rotated
+    rotated mt masks: [np.array]
+        A list of rotated masks
+    """
+    from skimage.morphology.convex_hull import convex_hull_image
+
+    mt_merged_mask = np.zeros(mt_masks[0].shape)
+    for mask in mt_masks:
+        mt_merged_mask[mask > 0] = 1
+    hull_mask = convex_hull_image(mt_merged_mask)
+
+    hull_gc = _mask_gravity_center(hull_mask)
+    hull_gc = (int(hull_gc[1]), int(hull_gc[0]))
+    mt_merged_gc = _mask_gravity_center(mt_merged_mask)
+    mt_merged_gc = (int(mt_merged_gc[1]), int(mt_merged_gc[0]))
+
+    angle = math.atan2(mt_merged_gc[1] - hull_gc[1], mt_merged_gc[0] - hull_gc[0]) + math.pi / 2
+    angle_deg = angle * 180 / math.pi
+
+    rotated_image = image.rotate(angle_deg, expand=True)
+
+    rotated_mt_masks = [ _pillow_image_to_np_binary(_np_binary_to_pillow_image(mt_mask).rotate(angle_deg, expand=True)) for mt_mask in mt_masks]
+
+    return (angle, angle_deg, rotated_image, rotated_mt_masks)
+
+def _pick_greatest(collection, number, make_comparable):
+    sorted_elements = sorted([(make_comparable(element), element) for element in collection], key=operator.itemgetter(0))
+    return [sorted_element[1] for sorted_element in sorted_elements[-number:]]
+

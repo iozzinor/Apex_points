@@ -1,5 +1,5 @@
 from .image_merger import ImageMerger as _ImageMerger
-from . import utils
+from .. import utils
 
 from PIL import Image, ImageDraw
 import numpy as np
@@ -8,17 +8,8 @@ from skimage.measure import find_contours
 import operator
 import math
 import json
-import logging
 import os
 import sys
-import traceback
-
-# logging
-_logger = logging.getLogger('ray_tracing')
-_log_handler = logging.StreamHandler()
-_log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-_log_handler.setFormatter(_log_formatter)
-_logger.addHandler(_log_handler)
 
 def _perform_rotation(localize_apices_shared, debug_image_merger):
     from skimage.morphology.convex_hull import convex_hull_image
@@ -224,10 +215,7 @@ def _compute_i3m(localize_apices_shared, debug_image_merger):
 
     debug_image_merger.add_image(image, 'I3M')
 
-def localize_apices(image, mt_masks, debug=False, output_dir='.', image_name=''):
-    _logger.setLevel(logging.DEBUG if debug else logging.WARNING)
-    _logger.info('starting apices localization')
-
+def localize_apices_engine(image, mt_masks, debug=False, output_dir='.', image_name=''):
     debug_image_merger = _ImageMerger()
 
     # load the masks
@@ -235,7 +223,6 @@ def localize_apices(image, mt_masks, debug=False, output_dir='.', image_name='')
 
     # check the mask length
     if len(mt_masks) < 2:
-        _logger.error('Not enough MT masks. Aborting.')
         return
     mt_masks = utils._find_greatest_mt_masks(mt_masks)
 
@@ -253,10 +240,8 @@ def localize_apices(image, mt_masks, debug=False, output_dir='.', image_name='')
         _find_endpoints(localize_apices_shared, debug_image_merger)
         # step 5: compute i3m
         _compute_i3m(localize_apices_shared, debug_image_merger)
-    except Exception as exception:
-        _logger.error(f'an error occured: {exception}')
-        _logger.error(traceback.format_exc())
-        return None
+    except:
+        raise
     finally:
         if debug:
             output_image_name = os.path.join(output_dir, f'{image_name}-debug.png')
@@ -264,41 +249,3 @@ def localize_apices(image, mt_masks, debug=False, output_dir='.', image_name='')
             image_to_save.save(output_image_name)
     
     return localize_apices_shared
-
-def _localize_apices_from_json_file_path(annotations, debug=False, output_dir='.', image_name=''):
-    # load the masks
-    width, height = annotations['imageWidth'], annotations['imageHeight']
-    mt_shapes = [shape for shape in annotations['shapes'] if shape['label'] == 'MT']
-    mt_masks = [utils._labelme_shape_to_mask(shape, width, height) for shape in mt_shapes]
-    image = utils._labelme_annotations_to_image(annotations)
-
-    localize_apices(image, mt_masks, debug, output_dir, image_name)
-    
-def localize_apices_from_json_file_paths(json_file_paths, debug=False, output_dir='.'):
-    _logger.setLevel(logging.DEBUG if debug else logging.WARNING)
-    _logger.info('starting apices localization')
-
-    # load all annotations
-    all_annotations = {}
-    for json_file_path in json_file_paths:
-        if not os.path.exists(json_file_path):
-            _logger.warn(f'file \'{json_file_path}\' does not exist. Ignoring...')
-            continue
-
-        with open(json_file_path) as json_file:
-            filename = os.path.splitext(os.path.basename(json_file_path))[0]
-            try:
-                all_annotations[filename] = json.load(json_file)
-            except:
-                _logger.error(f'could not load json file \'{json_file_path}\'')
-                continue
-    _logger.info('will perform localization for {} files'.format(len(all_annotations)))
-    if len(all_annotations) < 1:
-        _logger.error('no images to analyze')
-        sys.exit(1)
-
-    # perform analysis
-    for filename, annotations in all_annotations.items():
-        _logger.debug(f'making analysis for image {filename}')
-        _localize_apices_from_json_file_path(annotations, debug, output_dir, filename)
-
