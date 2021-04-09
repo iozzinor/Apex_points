@@ -79,4 +79,4 @@ def localize_apices_engine(image, mt_masks, debug, output_dir, image_name):
     utils._add_mark(image, outer_right_endpoint, (255, 128, 0)) 
     utils._add_mark(image, inner_right_endpoint, (255, 0, 0)) 
 
-    image.show()
+    return { 'output_image': image }
