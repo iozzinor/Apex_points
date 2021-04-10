@@ -196,6 +196,7 @@ def _compute_i3m(localize_apices_shared, debug_image_merger):
     for pair in endpoint_pairs:
         for point in pair:
             utils._add_mark(image, point)
+        distance = utils._distance(pair[0], pair[1])
         draw.line(pair, fill=(255, 0, 0))
         label_position = (min(pair[0][0], pair[1][0]), max(pair[0][1], pair[1][1]) + 30)
         draw.text(label_position, f'{distance:0.2f} pixels', fill=(255, 0, 0))
