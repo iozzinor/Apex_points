@@ -402,3 +402,7 @@ def _pick_greatest(collection, number, make_comparable):
     sorted_elements = sorted([(make_comparable(element), element) for element in collection], key=operator.itemgetter(0))
     return [sorted_element[1] for sorted_element in sorted_elements[-number:]]
 
+def _compute_i3m(enpoint_pairs, height):
+    if height == 0:
+        return None
+    return sum([_distance(a, b) for a, b in endpoint_pairs]) / height

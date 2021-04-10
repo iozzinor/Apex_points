@@ -79,4 +79,7 @@ def localize_apices_engine(image, mt_masks, debug, output_dir, image_name):
     utils._add_mark(image, outer_right_endpoint, (255, 128, 0)) 
     utils._add_mark(image, inner_right_endpoint, (255, 0, 0)) 
 
-    return { 'output_image': image }
+    tooth_height, _, _ = utils._get_tooth_height(apical_mt_mask | coronal_mt_mask)
+    i3m = utils._compute_i3m([[outer_left_endpoint, inner_left_endpoint], [outer_right_endpoint, inner_right_endpoint]])
+
+    return { 'output_image': image, 'I3M': i3m }
