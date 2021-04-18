@@ -209,6 +209,45 @@ def _are_lines_neighbours(a, b):
                 return True
     return False
 
+def _are_coordinates_valid(x, y, width, height):
+    """
+    Returns
+    -------
+    bool: Whether a point (x, y) lies in a rectangle (0, 0, width, height)
+    """
+    return x > -1 and x < width and y > -1 and y < height
+
+def _neighbours_coordinates(x, y, width, height):
+    coordinates = [((i % 3 - 1 + x), (i // 3 - 1 + y)) for i in range(9) if i != 4]
+    return [(x, y) for x, y in coordinates if _are_coordinates_valid(x, y, width, height)]
+
+def _neighbours_count_mask(mask):
+    """
+    Parameters
+    ----------
+    mask: np.array
+        A binary mask
+
+    Returns
+    -------
+    np.array: a result array, where all values in the input binary mask are replaced with the number of neighbours
+    """
+    import scipy.signal
+    return np.array(scipy.signal.convolve(mask, [[1, 1, 1], [1, 0, 1], [1, 1, 1]], mode='same') & mask, dtype=np.int)
+
+def _endpoints_in_mask(mask):
+    """
+    Parameters
+    ----------
+    mask: np.array
+        A mask with the number of neighbours, see _neighbours_count_mask
+    
+    Returns
+    -------
+    a zip iterator to coordinates of endpoints
+    """
+    return zip(*np.where(_neighbours_count_mask(mask) == 1))
+
 def _find_full_pulp_line(outline, pulp_line):
     segments = [[]]
     for point in outline:

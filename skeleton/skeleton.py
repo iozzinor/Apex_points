@@ -16,13 +16,6 @@ def gravity_center(mask):
                 count += 1
     return mean_x / count, mean_y / count
 
-def _coordinates_valid(x, y, width, height):
-    return x > -1 and x < width and y > -1 and y < height
-
-def _neighbours_coordinates(x, y, width, height):
-    coordinates = [((i % 3 - 1 + x), (i // 3 - 1 + y)) for i in range(9) if i != 4]
-    return [(x, y) for x, y in coordinates if _coordinates_valid(x, y, width, height)]
-
 def _neighbours_count(mask):
     result = np.zeros(mask.shape)
     width, height = mask.shape[1], mask.shape[0]
@@ -30,7 +23,7 @@ def _neighbours_count(mask):
         for x in range(width):
             if not mask[y][x]:
                 continue
-            count = sum([mask[y][x] for x, y in _neighbours_coordinates(x, y, width, height)])
+            count = sum([mask[y][x] for x, y in utils._neighbours_coordinates(x, y, width, height)])
             result[y][x] = count
     return result
 
