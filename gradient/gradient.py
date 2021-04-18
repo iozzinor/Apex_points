@@ -265,3 +265,5 @@ def localize_apices_engine(image, mt_masks, debug=False, output_dir='.', image_n
     i3m = utils._compute_i3m(endpoint_pairs, tooth_height)
 
     result = { 'output_image': rotated_image, 'I3M': i3m}
+    
+    return result
