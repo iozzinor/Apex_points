@@ -262,7 +262,7 @@ def localize_apices_engine(image, mt_masks, debug=False, output_dir='.', image_n
     (tooth_height, min_y, max_y) = utils._get_tooth_height(apical_mt_mask | coronal_mt_mask)
     draw.line((width // 2, min_y, width // 2, max_y), (0, 0, 255))
 
-    i3m = utils._compute_i3m(endpoint_pairs, tooth_height)
+    (i3m, min_apex_opening, max_apex_opening) = utils._compute_i3m(endpoint_pairs, tooth_height)
 
     result = { 'output_image': rotated_image, 'I3M': i3m, 'min_apex_opening': min_apex_opening, 'max_apex_opening': max_apex_opening, 'height': height }
     
