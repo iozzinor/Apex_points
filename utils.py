@@ -442,6 +442,22 @@ def _pick_greatest(collection, number, make_comparable):
     return [sorted_element[1] for sorted_element in sorted_elements[-number:]]
 
 def _compute_i3m(endpoint_pairs, height):
+    """
+    Returns
+    -------
+    A tupple: (i3m, min_apex_opening, max_apex_opening)
+    - i3m: float
+        The I3M score.
+    - min_apex_opening: int
+        The min apex opening in pixels
+    - max_apex_opening: int
+        The max apex opening in pixels
+    """
     if height == 0:
         return None
-    return sum([_distance(a, b) for a, b in endpoint_pairs]) / height
+    apex_openings = [_distance(a, b) for a, b in endpoint_pairs]
+    i3m = sum(apex_openings) / height
+    min_apex_opening = min(apex_openings)
+    max_apex_opening = max(apex_openings)
+
+    return (i3m, min_apex_opening, max_apex_opening)

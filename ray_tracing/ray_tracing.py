@@ -205,11 +205,14 @@ def _compute_i3m(localize_apices_shared, debug_image_merger):
     draw.line((mt_merged_gc[0], min_y, mt_merged_gc[0], max_y), fill=(0, 0, 255))
     draw.text((mt_merged_gc[0] + 30, int((min_y + max_y) / 2)), f'height: {height} pixels', fill=(0, 0, 255))
 
-    i3m = utils._compute_i3m(endpoint_pairs, height)
+    (i3m, min_apex_opening, max_apex_opening) = utils._compute_i3m(endpoint_pairs, height)
     draw.text((30, 30), f'I3M: {i3m:.03f}', fill=(255, 0, 0))
 
     localize_apices_shared['output_image'] = image
     localize_apices_shared['I3M'] = i3m
+    localize_apices_shared['min_apex_opening'] = min_apex_opening
+    localize_apices_shared['max_apex_opening'] = max_apex_opening
+    localize_apices_shared['height'] = height
 
     debug_image_merger.add_image(image, 'I3M')
 
