@@ -1,15 +1,15 @@
-from .image_merger import ImageMerger as _ImageMerger
-from .. import utils
+import json
+import math
+import operator
+import os
+import sys
 
 from PIL import Image, ImageDraw
 import numpy as np
 from skimage.measure import find_contours
 
-import operator
-import math
-import json
-import os
-import sys
+from .image_merger import ImageMerger as _ImageMerger
+from .. import utils
 
 def _perform_rotation(localize_apices_shared, debug_image_merger):
     from skimage.morphology.convex_hull import convex_hull_image

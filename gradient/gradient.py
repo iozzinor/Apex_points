@@ -1,5 +1,8 @@
-from .. import utils
-from . import raytracing_lookup
+import functools
+import itertools
+import math
+import operator
+import os
 
 from PIL import ImageDraw
 import scipy.ndimage as ndi
@@ -8,11 +11,8 @@ from skimage.morphology.convex_hull import convex_hull_image
 from skimage.measure import find_contours
 import numpy as np
 
-import functools
-import itertools
-import math
-import operator
-import os
+from .. import utils
+from . import raytracing_lookup
 
 def display_outlines(rotated_image, coronal_mt_mask, apical_mt_mask):
     coronal_outline = np.array(sorted(find_contours(coronal_mt_mask), key=functools.cmp_to_key(lambda a, b: len(a) - len(b)))[-1], dtype=int)

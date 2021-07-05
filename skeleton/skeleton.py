@@ -1,10 +1,10 @@
+import math
+import os
+
 import numpy as np
 from PIL import Image
 
 from .. import utils
-
-import math
-import os
 
 def gravity_center(mask):
     mean_x = 0
