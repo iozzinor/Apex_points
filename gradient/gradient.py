@@ -12,6 +12,7 @@ import functools
 import itertools
 import math
 import operator
+import os
 
 def display_outlines(rotated_image, coronal_mt_mask, apical_mt_mask):
     coronal_outline = np.array(sorted(find_contours(coronal_mt_mask), key=functools.cmp_to_key(lambda a, b: len(a) - len(b)))[-1], dtype=int)
@@ -265,5 +266,10 @@ def localize_apices_engine(image, mt_masks, debug=False, output_dir='.', image_n
     (i3m, min_apex_opening, max_apex_opening) = utils._compute_i3m(endpoint_pairs, tooth_height)
 
     result = { 'output_image': rotated_image, 'I3M': i3m, 'min_apex_opening': min_apex_opening, 'max_apex_opening': max_apex_opening, 'height': height }
+
+    # draw the rotated image if debug
+    if debug:
+        image_path = os.path.join(output_dir, f'{image_name}-debug.png')
+        rotated_image.save(image_path)
     
     return result

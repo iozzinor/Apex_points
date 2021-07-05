@@ -1,8 +1,10 @@
-import math
 import numpy as np
 from PIL import Image
 
 from .. import utils
+
+import math
+import os
 
 def gravity_center(mask):
     mean_x = 0
@@ -74,5 +76,9 @@ def localize_apices_engine(image, mt_masks, debug, output_dir, image_name):
 
     tooth_height, _, _ = utils._get_tooth_height(apical_mt_mask | coronal_mt_mask)
     (i3m, min_apex_opening, max_apex_opening) = utils._compute_i3m([[outer_left_endpoint, inner_left_endpoint], [outer_right_endpoint, inner_right_endpoint]], tooth_height)
+    
+    if debug:
+        image_path = os.path.join(output_dir, f'{image_name}-debug.png')
+        image.save(image_path)
 
     return { 'output_image': image, 'I3M': i3m, 'min_apex_opening': min_apex_opening, 'max_apex_opening': max_apex_opening, 'height': height }
