@@ -81,4 +81,4 @@ def localize_apices_engine(image, mt_masks, debug, output_dir, image_name):
         image_path = os.path.join(output_dir, f'{image_name}-debug.png')
         image.save(image_path)
 
-    return { 'output_image': image, 'I3M': i3m, 'min_apex_opening': min_apex_opening, 'max_apex_opening': max_apex_opening, 'height': height }
+    return { 'output_image': image, 'I3M': i3m, 'min_apex_opening': min_apex_opening, 'max_apex_opening': max_apex_opening, 'height': tooth_height }

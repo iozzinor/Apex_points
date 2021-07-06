@@ -1,11 +1,13 @@
+import base64
+import io
+import logging
+import math
+import operator
+import sys
+import traceback
+
 from PIL import Image, ImageDraw
 import numpy as np
-import operator
-import math
-import io
-import base64
-import logging
-import traceback
 
 # logging
 _logger = logging.getLogger('Apex points')

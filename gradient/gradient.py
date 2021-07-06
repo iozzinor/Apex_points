@@ -265,7 +265,7 @@ def localize_apices_engine(image, mt_masks, debug=False, output_dir='.', image_n
 
     (i3m, min_apex_opening, max_apex_opening) = utils._compute_i3m(endpoint_pairs, tooth_height)
 
-    result = { 'output_image': rotated_image, 'I3M': i3m, 'min_apex_opening': min_apex_opening, 'max_apex_opening': max_apex_opening, 'height': height }
+    result = { 'output_image': rotated_image, 'I3M': i3m, 'min_apex_opening': min_apex_opening, 'max_apex_opening': max_apex_opening, 'height': tooth_height }
 
     # draw the rotated image if debug
     if debug:
